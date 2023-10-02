@@ -1,0 +1,343 @@
+{% load static %}
+<style>
+  .nc-header {
+    background: #ffffff;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+  }
+  .nc-header-inner {
+    padding: 12px 0;
+  }
+  .nc-brand img {
+    max-height: 40px;
+    width: auto;
+    display: block;
+  }
+  
+  /* Category Dropdown */
+  .nc-cat-btn {
+    background: #eef2fd;
+    color: #3167eb;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 9px 18px;
+    border-radius: 25px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nc-cat-btn:hover, .nc-cat-btn:focus {
+    background: #3167eb;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(49, 103, 235, 0.25);
+  }
+  .nc-cat-dropdown {
+    border-radius: 14px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 8px;
+    margin-top: 8px;
+  }
+  .nc-cat-dropdown .dropdown-item {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #212529;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nc-cat-dropdown .dropdown-item:hover {
+    background: #eef2fd;
+    color: #3167eb;
+  }
+
+  /* Store Link */
+  .nc-store-link {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #545454;
+    padding: 9px 16px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nc-store-link:hover {
+    color: #3167eb;
+    background: #f8f9fa;
+    text-decoration: none;
+  }
+
+  /* Search Bar */
+  .nc-search-form {
+    position: relative;
+    width: 100%;
+  }
+  .nc-search-input {
+    width: 100%;
+    height: 44px;
+    padding: 10px 50px 10px 20px;
+    border-radius: 25px;
+    border: 1.5px solid #e5e7eb;
+    font-size: 0.88rem;
+    color: #212529;
+    background: #f9fafb;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .nc-search-input:focus {
+    border-color: #3167eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(49, 103, 235, 0.1);
+  }
+  .nc-search-btn {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #3167eb;
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nc-search-btn:hover {
+    background: #2452c8;
+    transform: scale(1.05);
+  }
+
+  /* User Menu Dropdown */
+  .nc-user-btn {
+    background: #f8f9fa;
+    border: 1.5px solid #e5e7eb;
+    color: #212529;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .nc-user-btn:hover, .nc-user-btn:focus {
+    background: #eef2fd;
+    border-color: #3167eb;
+    color: #3167eb;
+    text-decoration: none;
+  }
+  .nc-user-dropdown {
+    border-radius: 14px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 8px;
+    margin-top: 8px;
+    min-width: 200px;
+  }
+  .nc-user-dropdown .dropdown-item {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #212529;
+    padding: 9px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nc-user-dropdown .dropdown-item i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .nc-user-dropdown .dropdown-item:hover {
+    background: #f8f9fa;
+    color: #3167eb;
+  }
+  .nc-user-dropdown .dropdown-item.text-danger:hover {
+    background: #fff5f5;
+    color: #fa3434;
+  }
+
+  /* Guest Action Buttons */
+  .nc-auth-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nc-login-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #212529;
+    padding: 8px 16px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nc-login-btn:hover {
+    color: #3167eb;
+    background: #eef2fd;
+    text-decoration: none;
+  }
+  .nc-register-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #3167eb;
+    padding: 8px 18px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nc-register-btn:hover {
+    background: #2452c8;
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+
+  /* Cart Icon Button */
+  .nc-cart-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 1.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #212529;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+    flex-shrink: 0;
+  }
+  .nc-cart-btn:hover {
+    background: #eef2fd;
+    border-color: #3167eb;
+    color: #3167eb;
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .nc-cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #fa3434;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(250, 52, 52, 0.4);
+  }
+</style>
+
+<header class="nc-header">
+  <div class="container">
+    <div class="nc-header-inner d-flex align-items-center justify-content-between flex-wrap gap-3">
+      
+      <!-- Brand Logo -->
+      <a href="{% url 'homepage' %}" class="nc-brand mr-3">
+        <img src="{% static '/images/logo.png' %}" alt="NepCart">
+      </a>
+
+      <!-- Navigation & Category Dropdown -->
+      <div class="d-flex align-items-center gap-2 mr-auto">
+        <div class="dropdown">
+          <button type="button" class="nc-cat-btn dropdown-toggle" data-toggle="dropdown">
+            <i class="fa fa-bars"></i> All Categories
+          </button>
+          <div class="dropdown-menu nc-cat-dropdown">
+            {% for x in catogery %}
+              <a class="dropdown-item" href="{% url 'product_by_category' category_slug=x.slug %}">
+                {{ x.category_name }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        <a href="{% url 'store' %}" class="nc-store-link ml-2">Store</a>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="flex-grow-1 mx-3" style="max-width: 420px;">
+        <form action="{% url 'search' %}" method="GET" class="nc-search-form">
+          <input type="text" name="search" class="nc-search-input" placeholder="Search products, categories..." required>
+          <button type="submit" class="nc-search-btn" title="Search">
+            <i class="fa fa-search"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right User & Cart Widget -->
+      <div class="d-flex align-items-center gap-3">
+        
+        <!-- User Account Menu -->
+        {% if request.user.is_authenticated %}
+          <div class="dropdown">
+            <button class="nc-user-btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fa fa-user-circle text-primary" style="font-size: 1.1rem;"></i>
+              <span>{{ request.user.first_name|default:request.user.username }}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right nc-user-dropdown">
+              <div class="px-3 py-2 border-bottom">
+                <small class="text-muted d-block" style="font-size:0.7rem; font-weight:600;">SIGNED IN AS</small>
+                <strong class="text-dark" style="font-size:0.85rem;">{{ request.user.first_name }} {{ request.user.last_name }}</strong>
+              </div>
+              <a class="dropdown-item" href="{% url 'dashbord' %}">
+                <i class="fa fa-th-large text-primary"></i> Dashboard
+              </a>
+              <a class="dropdown-item" href="{% url 'order' %}">
+                <i class="fa fa-box text-primary"></i> My Orders
+              </a>
+              <a class="dropdown-item" href="{% url 'changepassword' %}">
+                <i class="fa fa-lock text-primary"></i> Change Password
+              </a>
+              <div class="dropdown-divider my-1"></div>
+              <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                <i class="fa fa-sign-out-alt text-danger"></i> Logout
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div class="nc-auth-btns">
+            <a href="{% url 'login' %}" class="nc-login-btn">
+              <i class="fa fa-sign-in-alt mr-1"></i> Sign In
+            </a>
+            <a href="{% url 'signup' %}" class="nc-register-btn">
+              Register
+            </a>
+          </div>
+        {% endif %}
+
+        <!-- Cart Button -->
+        <a href="{% url 'cart' %}" class="nc-cart-btn" title="Shopping Cart">
+          <i class="fa fa-shopping-cart"></i>
+          {% if count > 0 %}
+            <span class="nc-cart-badge">{{ count }}</span>
+          {% endif %}
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+</header>

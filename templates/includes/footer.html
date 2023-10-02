@@ -1,0 +1,190 @@
+{% load static %}
+<!-- ========================= FOOTER ========================= -->
+<style>
+  .nc-footer {
+    background: #ffffff;
+    color: #545454;
+    padding-top: 48px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.88rem;
+  }
+  .nc-footer a {
+    color: #545454;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nc-footer a:hover {
+    color: #3167eb;
+    text-decoration: none;
+  }
+  .nc-footer-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #212529;
+    margin-bottom: 16px;
+  }
+  .nc-footer-logo {
+    max-height: 40px;
+    width: auto;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .nc-footer-text {
+    line-height: 1.6;
+    margin-bottom: 16px;
+    color: #969696;
+    font-size: 0.85rem;
+  }
+  .nc-footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nc-footer-contact li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #545454;
+  }
+  .nc-footer-contact i {
+    color: #3167eb;
+    font-size: 0.9rem;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .nc-footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nc-footer-links li a {
+    font-size: 0.85rem;
+  }
+  .nc-footer-bottom {
+    border-top: 1px solid #f0f0f0;
+    padding: 18px 0;
+    margin-top: 36px;
+    font-size: 0.82rem;
+    color: #969696;
+  }
+  .nc-social-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nc-social-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    color: #545454 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .nc-social-icon:hover {
+    background: #eef2fd;
+    border-color: #3167eb;
+    color: #3167eb !important;
+  }
+  .nc-payment-icons i {
+    font-size: 1.3rem;
+    margin-left: 8px;
+    color: #969696;
+  }
+</style>
+
+<footer class="nc-footer">
+  <div class="container">
+    <div class="row">
+      
+      <!-- Brand Logo & Contact -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <a href="{% url 'homepage' %}">
+          <img src="{% static '/images/logo.png' %}" alt="NepCart" class="nc-footer-logo">
+        </a>
+        <p class="nc-footer-text">
+          Nepal's premier e-commerce platform offering fashion, electronics, and lifestyle products with reliable delivery nationwide.
+        </p>
+        <ul class="nc-footer-contact">
+          <li>
+            <i class="fa fa-envelope"></i>
+            <span>nirajankhatiwada29@gmail.com</span>
+          </li>
+          <li>
+            <i class="fa fa-phone"></i>
+            <span>+977 9866388766</span>
+          </li>
+          <li>
+            <i class="fa fa-map-marker-alt"></i>
+            <span>Hetauda-5, Piple, Nepal</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="col-lg-2 col-md-6 mb-4">
+        <h5 class="nc-footer-title">Quick Links</h5>
+        <ul class="nc-footer-links">
+          <li><a href="{% url 'homepage' %}">Home</a></li>
+          <li><a href="{% url 'store' %}">Store</a></li>
+          <li><a href="{% url 'cart' %}">My Cart</a></li>
+          <li><a href="{% url 'dashbord' %}">My Account</a></li>
+          <li><a href="{% url 'order' %}">Order History</a></li>
+        </ul>
+      </div>
+
+      <!-- Categories -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5 class="nc-footer-title">Categories</h5>
+        <ul class="nc-footer-links">
+          {% for x in catogery|slice:":5" %}
+            <li><a href="{% url 'product_by_category' category_slug=x.slug %}">{{ x.category_name }}</a></li>
+          {% empty %}
+            <li><a href="{% url 'store' %}">All Products</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Socials -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5 class="nc-footer-title">Connect With Us</h5>
+        <p class="nc-footer-text mb-3">
+          Follow us on social media for sales, updates, and new arrivals.
+        </p>
+        <div class="nc-social-icons">
+          <a href="#" class="nc-social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="nc-social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="nc-social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="nc-social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="nc-footer-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <span>&copy; {% now "Y" %} NepCart. All rights reserved.</span>
+      </div>
+      <div class="nc-payment-icons">
+        <i class="fab fa-cc-visa" title="Visa"></i>
+        <i class="fab fa-cc-mastercard" title="MasterCard"></i>
+        <i class="fab fa-cc-paypal" title="PayPal"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+<!-- ========================= FOOTER END ========================= -->
