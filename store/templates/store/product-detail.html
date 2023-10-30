@@ -1,0 +1,361 @@
+{%extends "base.html"%}
+{%load static%}
+{%block content%}
+
+<!-- ====================================================== -->
+<!--  SCOPED STYLES — product detail page                   -->
+<!-- ====================================================== -->
+<style>
+  /* ---- page wrapper ---- */
+  .pd-section {
+    background: #f8f9fa;
+    padding: 40px 0 60px;
+  }
+
+  /* ---- main card ---- */
+  .pd-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    max-height: 520px;
+  }
+  @media (max-width: 767px) {
+    .pd-card { flex-direction: column; max-height: none; }
+  }
+
+  /* ---- image panel ---- */
+  .pd-image-panel {
+    flex: 0 0 44%;
+    max-width: 44%;
+    position: relative;
+    background: #f0f0f0;
+    overflow: hidden;
+    height: 520px;
+  }
+  @media (max-width: 767px) {
+    .pd-image-panel { flex: none; max-width: 100%; height: 280px; }
+  }
+  .pd-image-panel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .pd-image-panel:hover img { transform: scale(1.04); }
+
+  /* discount ribbon on image */
+  .pd-ribbon {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    background: #fa3434;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 6px 14px 6px 12px;
+    border-radius: 0 4px 4px 0;
+    letter-spacing: 0.5px;
+    box-shadow: 2px 2px 8px rgba(250,52,52,0.35);
+  }
+
+  /* ---- info panel ---- */
+  .pd-info-panel {
+    flex: 1;
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+  @media (max-width: 767px) {
+    .pd-info-panel { padding: 24px 20px; }
+  }
+
+  .pd-category-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #3167eb;
+    background: #eef2fd;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-decoration: none;
+    width: fit-content;
+  }
+
+  .pd-title {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: #212529;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  /* ---- pricing row ---- */
+  .pd-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pd-price-now {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: #212529;
+  }
+  .pd-price-was {
+    font-size: 1rem;
+    color: #969696;
+    text-decoration: line-through;
+  }
+  .pd-savings {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #00b517;
+    background: #e6f9ee;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #c3e6cb;
+  }
+  .pd-stock-count-in {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #00b517;
+    background: #e6f9ee;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #c3e6cb;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pd-stock-count-out {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fa3434;
+    background: #fff0f0;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #f5bcbc;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ---- description ---- */
+  .pd-description {
+    font-size: 0.9rem;
+    color: #545454;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ---- divider ---- */
+  .pd-divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 0;
+  }
+
+  /* ---- variant selects ---- */
+  .pd-variant-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #969696;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .pd-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #212529;
+    background: #fafafa;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23969696' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .pd-select:focus {
+    outline: none;
+    border-color: #3167eb;
+    background-color: #fff;
+  }
+
+  /* ---- no variations note ---- */
+  .pd-no-variant {
+    font-size: 0.85rem;
+    color: #969696;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ---- CTA buttons ---- */
+  .pd-btn-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3167eb;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 800;
+    padding: 14px 32px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.15s;
+    text-decoration: none;
+    width: fit-content;
+  }
+  .pd-btn-cart:hover {
+    background: #2452c8;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  .pd-btn-disabled {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e9ecef;
+    color: #adb5bd;
+    font-size: 0.92rem;
+    font-weight: 800;
+    padding: 14px 32px;
+    border-radius: 12px;
+    border: none;
+    cursor: not-allowed;
+    letter-spacing: 0.3px;
+    width: fit-content;
+  }
+</style>
+
+<!-- ========================= PRODUCT DETAIL ========================= -->
+<section class="pd-section">
+  <div class="container">
+
+    <!-- breadcrumb -->
+    <nav class="mb-4" aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent p-0" style="font-size:0.82rem;">
+        <li class="breadcrumb-item"><a href="/" class="text-muted">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'store' %}" class="text-muted">Store</a></li>
+        <li class="breadcrumb-item active text-dark font-weight-bold">{{ data.product_name }}</li>
+      </ol>
+    </nav>
+
+    <form action="{% url 'addtocart' product_slug=data.slug %}" method="post">
+      {% csrf_token %}
+
+      <div class="pd-card">
+
+        <!-- ===== IMAGE PANEL ===== -->
+        <div class="pd-image-panel">
+          <img src="{{ data.image.url }}" alt="{{ data.product_name }}">
+          {% if data.initial_price > data.price %}
+            {% widthratio data.price data.initial_price 100 as pct %}
+            <span class="pd-ribbon">{{ 100|add:"-"|add:pct }}% OFF</span>
+          {% endif %}
+        </div>
+
+        <!-- ===== INFO PANEL ===== -->
+        <div class="pd-info-panel">
+
+          <!-- category tag -->
+          <a href="{% url 'store' %}?category={{ data.catogery.slug }}" class="pd-category-tag">
+            {{ data.catogery.category_name }}
+          </a>
+
+          <!-- title -->
+          <h1 class="pd-title">{{ data.product_name }}</h1>
+
+          <!-- pricing -->
+          <div class="pd-pricing">
+            <span class="pd-price-now">NPR {{ data.price }}</span>
+            {% if data.initial_price > data.price %}
+              <span class="pd-price-was">NPR {{ data.initial_price }}</span>
+              {% widthratio data.price data.initial_price 100 as pct2 %}
+              <span class="pd-savings">Save {{ 100|add:"-"|add:pct2 }}%</span>
+            {% endif %}
+            {% if data.stock > 0 and data.is_available %}
+              <span class="pd-stock-count-in"><i class="fa fa-check-circle"></i> {{ data.stock }} in stock</span>
+            {% else %}
+              <span class="pd-stock-count-out"><i class="fa fa-times-circle"></i> Out of stock</span>
+            {% endif %}
+          </div>
+
+          <hr class="pd-divider">
+
+          <!-- description -->
+          <p class="pd-description">{{ data.description }}</p>
+
+          <hr class="pd-divider">
+
+          <!-- variants -->
+          {% if data.variations.colors.exists or data.variations.sizes.exists %}
+            <div class="row">
+              {% if data.variations.colors.exists %}
+              <div class="col-md-6 mb-3">
+                <span class="pd-variant-label">Color</span>
+                <select name="color" class="pd-select" required>
+                  <option value="" disabled selected>Select Color</option>
+                  {% for i in data.variations.colors %}
+                    <option value="{{ i.variation_value|lower }}">{{ i.variation_value|capfirst }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endif %}
+              {% if data.variations.sizes.exists %}
+              <div class="col-md-6 mb-3">
+                <span class="pd-variant-label">Size</span>
+                <select name="size" class="pd-select" required>
+                  <option value="" disabled selected>Select Size</option>
+                  {% for i in data.variations.sizes %}
+                    <option value="{{ i.variation_value|lower }}">{{ i.variation_value|upper }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endif %}
+            </div>
+          {% else %}
+            <p class="pd-no-variant">
+              <i class="fa fa-info-circle"></i> No size or color variations available
+            </p>
+          {% endif %}
+
+          <!-- CTA -->
+          {% if data.stock <= 0 or not data.is_available %}
+            <span class="pd-btn-disabled">
+              <i class="fa fa-ban"></i> Out of Stock
+            </span>
+          {% else %}
+            <button type="submit" class="pd-btn-cart">
+              <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+          {% endif %}
+
+        </div><!-- /.pd-info-panel -->
+      </div><!-- /.pd-card -->
+
+    </form>
+
+  </div><!-- /.container -->
+</section>
+<!-- ========================= PRODUCT DETAIL END ========================= -->
+
+{%endblock%}

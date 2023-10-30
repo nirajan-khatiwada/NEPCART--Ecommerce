@@ -1,0 +1,382 @@
+{%extends "base.html"%}
+{%load static%}
+{%block content%}
+
+<!-- ====================================================== -->
+<!--  SCOPED STYLES — store page product cards & sidebar    -->
+<!-- ====================================================== -->
+<style>
+  .store-section {
+    background: #f8f9fa;
+    padding: 30px 0 60px;
+  }
+  
+  .store-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #212529;
+    margin-bottom: 20px;
+  }
+
+  /* ---- filter sidebar ---- */
+  .nc-filter-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+  }
+
+  .nc-filter-header {
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .nc-filter-section {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .nc-filter-section:last-child {
+    border-bottom: none;
+  }
+
+  .nc-filter-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #969696;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* categories list */
+  .nc-cat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nc-cat-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #545454;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+  }
+  .nc-cat-list li a:hover {
+    background: #eef2fd;
+    color: #3167eb;
+  }
+
+  /* price form */
+  .nc-price-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #212529;
+    background: #fafafa;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .nc-price-select:focus {
+    border-color: #3167eb;
+    background: #ffffff;
+  }
+  .nc-price-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #545454;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .nc-filter-apply-btn {
+    width: 100%;
+    background: #3167eb;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 11px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nc-filter-apply-btn:hover {
+    background: #2452c8;
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  /* ---- product card ---- */
+  .nc-card {
+    position: relative;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+  }
+  .nc-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+  }
+
+  /* ---- image area ---- */
+  .nc-card__img-wrap {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    background: #f7f7f7;
+    flex-shrink: 0;
+    display: block;
+  }
+  .nc-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .nc-card:hover .nc-card__img-wrap img {
+    transform: scale(1.06);
+  }
+
+  /* ---- discount ribbon ---- */
+  .nc-ribbon {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    background: #fa3434;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 4px 10px 4px 8px;
+    border-radius: 3px 0 0 3px;
+    pointer-events: none;
+  }
+  .nc-ribbon::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -6px;
+    border-style: solid;
+    border-width: 6px 8px 0 0;
+    border-color: #cc2222 transparent transparent transparent;
+  }
+
+  /* ---- overlay ---- */
+  .nc-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,15,15,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .nc-card:hover .nc-overlay { opacity: 1; }
+  .nc-overlay span {
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 30px;
+    letter-spacing: 0.4px;
+    pointer-events: none;
+  }
+
+  /* ---- info area ---- */
+  .nc-card__body {
+    padding: 14px 16px 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nc-card__name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #212529;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nc-card__name:hover { color: #3167eb; }
+
+  .nc-card__pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+  .nc-price-now {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #212529;
+  }
+  .nc-price-was {
+    font-size: 0.78rem;
+    color: #969696;
+    text-decoration: line-through;
+  }
+</style>
+
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="store-section">
+  <div class="container">
+    
+    <h1 class="store-title">Our Store</h1>
+
+    <div class="row">
+      
+      <!-- ===== SIDEBAR FILTERS ===== -->
+      <aside class="col-md-3 mb-4">
+        <div class="nc-filter-card">
+          
+          <div class="nc-filter-header">
+            <span><i class="fa fa-filter text-primary mr-1"></i> Filters</span>
+            {% if request.GET.min or request.GET.max %}
+              <a href="{% url 'store' %}" style="font-size:0.75rem; font-weight:700; color:#fa3434; text-decoration:none;">Reset</a>
+            {% endif %}
+          </div>
+
+          <!-- Categories Filter -->
+          <div class="nc-filter-section">
+            <span class="nc-filter-label"><i class="fa fa-list-ul"></i> Categories</span>
+            <ul class="nc-cat-list">
+              {% for x in catogery %}
+                <li>
+                  <a href="{% url 'product_by_category' category_slug=x.slug %}">
+                    <span>{{ x.category_name }}</span>
+                    <i class="fa fa-chevron-right" style="font-size:0.7rem; opacity:0.4;"></i>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Price Range Filter -->
+          <div class="nc-filter-section">
+            <span class="nc-filter-label"><i class="fa fa-tag"></i> Price Range (NPR)</span>
+            <form action="{% url 'store' %}" method="GET">
+              <div class="form-row">
+                <div class="col-6">
+                  <span class="nc-price-label">Min Price</span>
+                  <select class="nc-price-select" name="min">
+                    <option value="0">0</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="5000">5000</option>
+                    <option value="10000">10000</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <span class="nc-price-label">Max Price</span>
+                  <select class="nc-price-select" name="max">
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="5000">5000</option>
+                    <option value="10000">10000</option>
+                    <option value="20000">20000</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="nc-filter-apply-btn">
+                Apply Filter
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- ===== PRODUCT GRID ===== -->
+      <main class="col-md-9">
+
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+          <span style="font-size:0.9rem; font-weight:700; color:#545454;">
+            {{ len_product }} item{{ len_product|pluralize }} found
+          </span>
+        </div>
+
+        <div class="row">
+          {% for product in data %}
+          <div class="col-md-4">
+            <div class="nc-card">
+              <!-- image -->
+              <a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__img-wrap">
+                <img src="{{ product.image.url }}" alt="{{ product.product_name }}">
+
+                {% if product.initial_price > product.price %}
+                  {% widthratio product.price product.initial_price 100 as pct %}
+                  <span class="nc-ribbon">{{ 100|add:"-"|add:pct }}% OFF</span>
+                {% endif %}
+
+                <div class="nc-overlay"><span>View Details</span></div>
+              </a>
+
+              <!-- info -->
+              <div class="nc-card__body">
+                <a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__name">{{ product.product_name }}</a>
+                <div class="nc-card__pricing">
+                  <span class="nc-price-now">NPR {{ product.price }}</span>
+                  {% if product.initial_price > product.price %}
+                    <span class="nc-price-was">NPR {{ product.initial_price }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div> <!-- col.// -->
+          {% empty %}
+          <div class="col-12 text-center py-5">
+            <p class="text-muted mb-3" style="font-size:1rem;">No products match your selected filter.</p>
+            <a href="{% url 'store' %}" class="btn btn-primary btn-sm px-4 font-weight-bold" style="border-radius:20px;">
+              Clear Filters
+            </a>
+          </div>
+          {% endfor %}
+        </div> <!-- row end.// -->
+
+      </main>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
