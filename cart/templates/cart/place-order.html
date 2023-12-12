@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- ====================================================== -->
+<!--  SCOPED STYLES — place order page                      -->
+<!-- ====================================================== -->
+<style>
+  .po-section {
+    background: #f8f9fa;
+    padding: 40px 0 60px;
+  }
+
+  /* ---- page heading ---- */
+  .po-heading {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #212529;
+    margin-bottom: 6px;
+  }
+  .po-subheading {
+    font-size: 0.88rem;
+    color: #969696;
+    margin-bottom: 28px;
+  }
+
+  /* ---- step badges ---- */
+  .po-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 32px;
+  }
+  .po-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #969696;
+  }
+  .po-step.active { color: #3167eb; }
+  .po-step.done { color: #00b517; }
+  .po-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #969696;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .po-step.active .po-step-num { background: #3167eb; color: #fff; }
+  .po-step.done .po-step-num { background: #00b517; color: #fff; }
+  .po-step-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 10px;
+    min-width: 30px;
+  }
+  .po-step-line.done { background: #00b517; }
+
+  /* ====== PANELS ====== */
+  .po-panel {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .po-panel-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .po-panel-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #eef2fd;
+    color: #3167eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .po-panel-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #212529;
+    margin: 0;
+  }
+  .po-panel-body {
+    padding: 20px 24px;
+  }
+
+  /* ====== ORDER ITEMS ====== */
+  .po-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .po-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .po-item:first-child { padding-top: 0; }
+  .po-item-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid #f0f0f0;
+  }
+  .po-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .po-item-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #212529;
+    flex: 1;
+    line-height: 1.3;
+  }
+  .po-item-variant {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #777;
+    background: #f4f4f4;
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-top: 4px;
+    text-transform: capitalize;
+  }
+  .po-item-subtotal {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #212529;
+    white-space: nowrap;
+  }
+  .po-item-qty {
+    font-size: 0.72rem;
+    color: #969696;
+    display: block;
+    text-align: right;
+  }
+
+  /* ====== DELIVERY ADDRESS ====== */
+  .po-address-card {
+    background: #f8f9fa;
+    border: 1.5px solid #e9ecef;
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .po-address-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #eef2fd;
+    color: #3167eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .po-address-name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #212529;
+    margin-bottom: 3px;
+  }
+  .po-address-text {
+    font-size: 0.82rem;
+    color: #545454;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .po-address-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #3167eb;
+    border: 1.5px solid #3167eb;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+  }
+  .po-address-change:hover { background: #3167eb; color: #fff; }
+
+  /* no address state */
+  .po-no-address {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .po-no-address-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #eef2fd;
+    color: #3167eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 14px;
+  }
+  .po-no-address h5 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #212529;
+    margin-bottom: 8px;
+  }
+  .po-no-address p {
+    font-size: 0.85rem;
+    color: #969696;
+    max-width: 380px;
+    margin: 0 auto 18px;
+    line-height: 1.6;
+  }
+  .po-setup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3167eb;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 12px 26px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .po-setup-btn:hover { background: #2452c8; color: #fff; }
+
+  /* ====== SUMMARY SIDEBAR ====== */
+  .po-summary {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    padding: 24px;
+    position: sticky;
+    top: 20px;
+  }
+  .po-summary-title {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #212529;
+    margin-bottom: 20px;
+  }
+  .po-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    color: #545454;
+    margin-bottom: 12px;
+  }
+  .po-summary-row.discount { color: #00b517; font-weight: 700; }
+  .po-summary-divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 16px 0;
+  }
+  .po-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  .po-summary-total-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #212529;
+  }
+  .po-summary-total-amount {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #3167eb;
+  }
+
+  /* coupon indicator */
+  .po-coupon-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #eef2fd;
+    border: 1px solid #b8cdf8;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #3167eb;
+  }
+
+  /* CTA buttons */
+  .po-pay-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #3167eb;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.15s;
+    margin-bottom: 10px;
+    text-decoration: none;
+  }
+  .po-pay-btn:hover { background: #2452c8; color: #fff; transform: translateY(-2px); }
+  .po-pay-btn:disabled, .po-pay-btn.disabled {
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .po-back-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #f8f9fa;
+    color: #545454;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 13px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .po-back-btn:hover { background: #e9ecef; color: #212529; }
+  .po-payments-img {
+    display: block;
+    margin: 14px auto 0;
+    opacity: 0.5;
+    height: 22px;
+  }
+</style>
+
+<!-- ========================= PLACE ORDER ========================= -->
+<section class="po-section">
+  <div class="container">
+
+    <!-- heading -->
+    <h1 class="po-heading">Place Your Order</h1>
+    <p class="po-subheading">Review your items and confirm your delivery address before proceeding to payment.</p>
+
+    <!-- step indicator -->
+    <div class="po-steps">
+      <div class="po-step done">
+        <div class="po-step-num"><i class="fa fa-check" style="font-size:0.65rem;"></i></div>
+        <span>Cart</span>
+      </div>
+      <div class="po-step-line done"></div>
+      <div class="po-step active">
+        <div class="po-step-num">2</div>
+        <span>Review</span>
+      </div>
+      <div class="po-step-line"></div>
+      <div class="po-step">
+        <div class="po-step-num">3</div>
+        <span>Payment</span>
+      </div>
+    </div>
+
+    <div class="row">
+
+      <!-- ===== LEFT: items + delivery ===== -->
+      <div class="col-lg-8 mb-4">
+
+        <!-- order items panel -->
+        <div class="po-panel">
+          <div class="po-panel-header">
+            <div class="po-panel-icon"><i class="fa fa-box"></i></div>
+            <h2 class="po-panel-title">Order Items</h2>
+          </div>
+          <div class="po-panel-body">
+            {% for x in data %}
+            <div class="po-item">
+              <div class="po-item-img">
+                <img src="{{ x.product.image.url }}" alt="{{ x.product.product_name }}">
+              </div>
+              <div class="flex-grow-1">
+                <div class="po-item-name">{{ x.product.product_name }}</div>
+                <div>
+                  {% if x.variations.all %}
+                    {% for item in x.variations.all %}
+                      <span class="po-item-variant">{{ item.variation_category }}: {{ item.variation_value }}</span>
+                    {% endfor %}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="po-item-subtotal">NPR {{ x.subtotal }}</span>
+                <span class="po-item-qty">x{{ x.quantity }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- delivery address panel -->
+        <div class="po-panel">
+          <div class="po-panel-header">
+            <div class="po-panel-icon"><i class="fa fa-map-marker-alt"></i></div>
+            <h2 class="po-panel-title">Delivery Address</h2>
+          </div>
+          <div class="po-panel-body">
+            {% if has_saved_address %}
+              <div class="po-address-card">
+                <div class="po-address-icon">
+                  <i class="fa fa-map-marker-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="po-address-name">
+                    {{ request.user.first_name }} {{ request.user.last_name }}
+                    <span style="font-weight:500; color:#969696; font-size:0.8rem; margin-left:6px;">
+                      ({{ request.user.phone_number|default:request.user.email }})
+                    </span>
+                  </div>
+                  <p class="po-address-text">
+                    {{ saved_address.address_line_1 }}, {{ saved_address.city }},<br>
+                    {{ saved_address.state }}, {{ saved_address.country }}
+                  </p>
+                </div>
+                <a href="{% url 'dashbord' %}" class="po-address-change">
+                  <i class="fa fa-edit"></i> Change
+                </a>
+              </div>
+            {% else %}
+              <div class="po-no-address">
+                <div class="po-no-address-icon">
+                  <i class="fa fa-map-marker-alt"></i>
+                </div>
+                <h5>No Delivery Address Found</h5>
+                <p>Please add your delivery address in your profile before placing an order. It will be saved for future orders too.</p>
+                <a href="{% url 'dashbord' %}" class="po-setup-btn">
+                  <i class="fa fa-user"></i> Add Address in Profile
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div><!-- /.col -->
+
+      <!-- ===== RIGHT: summary ===== -->
+      <div class="col-lg-4">
+        <div class="po-summary">
+          <div class="po-summary-title">Order Summary</div>
+
+          {% if coupon %}
+          <div class="po-coupon-pill">
+            <i class="fa fa-tag"></i>
+            Promo <strong>{{ coupon.code }}</strong> — {{ coupon.discount_percent }}% OFF
+          </div>
+          {% endif %}
+
+          <div class="po-summary-row">
+            <span>Subtotal</span>
+            <span>NPR {{ total }}</span>
+          </div>
+          <div class="po-summary-row">
+            <span>Tax (13%)</span>
+            <span>NPR {{ tax }}</span>
+          </div>
+          {% if coupon %}
+          <div class="po-summary-row discount">
+            <span><i class="fa fa-tag mr-1"></i> Promo Discount</span>
+            <span>- NPR {{ discount }}</span>
+          </div>
+          {% endif %}
+
+          <hr class="po-summary-divider">
+
+          <div class="po-summary-total">
+            <span class="po-summary-total-label">Grand Total</span>
+            <span class="po-summary-total-amount">NPR {{ grandtotal }}</span>
+          </div>
+
+          {% if has_saved_address %}
+            <form action="{% url 'payment' %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="po-pay-btn">
+                <i class="fas fa-lock mr-1"></i> Proceed to Payment
+              </button>
+            </form>
+          {% else %}
+            <a href="{% url 'dashbord' %}" class="po-pay-btn">
+              <i class="fa fa-user mr-1"></i> Setup Address First
+            </a>
+          {% endif %}
+
+          <a href="{% url 'cart' %}" class="po-back-btn">
+            &larr; Back to Cart
+          </a>
+
+          <img src="{% static 'images/misc/payments.svg' %}" class="po-payments-img" alt="Accepted payments">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ========================= PLACE ORDER END ========================= -->
+
+{% endblock %}
