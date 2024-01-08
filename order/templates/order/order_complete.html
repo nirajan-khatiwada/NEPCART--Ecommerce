@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt & Invoice - NepCart</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529;">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f9fa; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 32px 40px 20px 40px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+                            <h1 style="margin: 0; font-size: 26px; font-weight: 900; color: #212529; letter-spacing: -0.5px;">
+                                Nep<span style="color: #3167eb;">Cart</span>
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Success Hero Banner -->
+                    <tr>
+                        <td style="padding: 36px 40px 20px 40px; text-align: center;">
+                            <h2 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 900; color: #212529;">
+                                Payment Successful
+                            </h2>
+                            <p style="margin: 0; font-size: 14px; color: #545454;">
+                                Thank you for your purchase. Here is your official order invoice receipt.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Invoice Details -->
+                    <tr>
+                        <td style="padding: 0 40px 24px 40px;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f9fa; border-radius: 12px; padding: 18px; font-size: 13px; color: #545454;">
+                                <tr>
+                                    <td width="50%" valign="top" style="line-height: 1.6;">
+                                        <strong style="color: #212529; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Invoiced To</strong>
+                                        <span style="color: #212529; font-weight: 700; font-size: 14px;">{{ request.user.first_name }} {{ request.user.last_name }}</span><br>
+                                        {{ request.user.email }}<br>
+                                        {% if order %}
+                                            {{ order.address_line_1 }}, {{ order.city }}<br>
+                                            {{ order.state }}, {{ order.country }}
+                                        {% endif %}
+                                    </td>
+                                    <td width="50%" valign="top" align="right" style="line-height: 1.6;">
+                                        <strong style="color: #212529; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Order Summary</strong>
+                                        {% if order_obj %}
+                                            <span style="font-weight: 700; color: #212529; display: block;">Order #{{ order_obj.order_number }}</span>
+                                        {% endif %}
+                                        <span style="display: inline-block; background-color: #e6f9ee; border: 1px solid #c3e6cb; color: #00b517; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; margin-top: 4px;">
+                                            {{ status|default:"PAID" }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Invoice Items Table -->
+                    <tr>
+                        <td style="padding: 0 40px 24px 40px;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 14px; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #f0f0f0;">
+                                        <th style="padding: 10px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #969696;">Item Description</th>
+                                        <th style="padding: 10px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #969696; text-align: center;">Qty</th>
+                                        <th style="padding: 10px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #969696; text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order_items %}
+                                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                                        <td style="padding: 12px 0; color: #212529;">
+                                            <strong style="display: block; font-weight: 700;">{{ item.product.product_name }}</strong>
+                                            {% if item.variations.all %}
+                                                <span style="font-size: 12px; color: #969696; display: block; margin-top: 2px;">
+                                                    {% for v in item.variations.all %}
+                                                        {{ v.variation_category|capfirst }}: {{ v.variation_value }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="padding: 12px 0; color: #545454; text-align: center;">{{ item.quantity }}</td>
+                                        <td style="padding: 12px 0; color: #212529; font-weight: 700; text-align: right;">NPR {{ item.subtotal }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" style="padding: 16px 0; text-align: center; color: #969696;">Order items summary</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <!-- Summary Totals -->
+                            <div style="border-top: 1px solid #f0f0f0; margin-top: 16px; padding-top: 14px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px; color: #545454;">
+                                    <tr>
+                                        <td style="padding: 4px 0;">Subtotal</td>
+                                        <td align="right" style="padding: 4px 0; color: #212529; font-weight: 600;">NPR {{ total }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 4px 0;">VAT / Tax (13%)</td>
+                                        <td align="right" style="padding: 4px 0; color: #212529; font-weight: 600;">NPR {{ tax }}</td>
+                                    </tr>
+                                    {% if discount > 0 %}
+                                    <tr>
+                                        <td style="padding: 4px 0; color: #00b517; font-weight: 700;">Promo Discount</td>
+                                        <td align="right" style="padding: 4px 0; color: #00b517; font-weight: 700;">- NPR {{ discount }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr style="border-top: 1px solid #e5e7eb;">
+                                        <td style="padding: 12px 0 0 0; font-size: 16px; font-weight: 800; color: #212529;">Grand Total</td>
+                                        <td align="right" style="padding: 12px 0 0 0; font-size: 20px; font-weight: 900; color: #3167eb;">NPR {{ grandtotal }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer Note & CTA -->
+                    <tr>
+                        <td style="padding: 0 40px 36px 40px; text-align: center;">
+                            <p style="margin: 0; font-size: 14px; color: #969696;">
+                                Thank you for shopping with NepCart! If you have any questions about this invoice, please reach out to our support team.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #f0f0f0; font-size: 13px; color: #969696;">
+                            <p style="margin: 0;">&copy; {% now "Y" %} NepCart Ecommerce. All rights reserved.</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
