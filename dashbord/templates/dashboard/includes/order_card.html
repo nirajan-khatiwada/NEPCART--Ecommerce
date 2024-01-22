@@ -1,0 +1,147 @@
+<!-- order card partial — dashboard/includes/order_card.html -->
+<style>
+  .oc-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .oc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .oc-order-num {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #212529;
+  }
+  .oc-date {
+    font-size: 0.75rem;
+    color: #969696;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+  .oc-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .oc-status-new, .oc-status-pending { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+  .oc-status-paid { background:#cce5ff; color:#004085; border:1px solid #b8daff; }
+  .oc-status-ondelivery, .oc-status-processing { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+  .oc-status-delivered, .oc-status-completed { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+  .oc-status-cancelled { background:#fff0f0; color:#c82333; border:1px solid #f5bcbc; }
+
+  .oc-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .oc-item:last-child { border-bottom: none; }
+  .oc-img {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid #f0f0f0;
+  }
+  .oc-img img { width:100%; height:100%; object-fit:cover; display:block; }
+  .oc-product-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #212529;
+    text-decoration: none;
+    transition: color 0.2s;
+    display: block;
+  }
+  .oc-product-name:hover { color: #3167eb; }
+  .oc-variant {
+    font-size: 0.68rem;
+    color: #969696;
+    text-transform: capitalize;
+    display: block;
+    margin-top: 2px;
+  }
+  .oc-qty { font-size:0.78rem; color:#969696; white-space:nowrap; }
+  .oc-sub { font-size:0.88rem; font-weight:800; color:#212529; white-space:nowrap; }
+
+  .oc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .oc-address { font-size:0.75rem; color:#969696; }
+  .oc-total { font-size:0.95rem; font-weight:900; color:#3167eb; }
+  .oc-tax { font-size:0.75rem; color:#969696; margin-right:10px; }
+</style>
+
+<div class="oc-card">
+  <!-- header -->
+  <div class="oc-header">
+    <div>
+      <span class="oc-order-num">Order #{{ order.order_number }}</span>
+      {% if order.created_at %}
+        <span class="oc-date">{{ order.created_at|date:"M d, Y" }}</span>
+      {% endif %}
+    </div>
+    <span class="oc-status oc-status-{{ order.status|lower|slugify }}">{{ order.status }}</span>
+  </div>
+
+  <!-- items -->
+  {% for x in order.order_items.all %}
+  <div class="oc-item">
+    <div class="oc-img">
+      <img src="{{ x.product.image.url }}" alt="{{ x.product.product_name }}">
+    </div>
+    <div class="flex-grow-1">
+      <a href="{% url 'product_detail' category_slug=x.product.catogery.slug product_slug=x.product.slug %}" class="oc-product-name">
+        {{ x.product.product_name }}
+      </a>
+      {% if x.variations.all %}
+        {% for v in x.variations.all %}
+          <span class="oc-variant">{{ v.variation_category }}: {{ v.variation_value }}</span>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="text-right">
+      <span class="oc-sub">NPR {{ x.subtotal }}</span>
+      <span class="oc-qty d-block">x{{ x.quantity }} @ NPR {{ x.product.price }}</span>
+    </div>
+  </div>
+  {% empty %}
+  <div class="px-4 py-3 text-center" style="font-size:0.85rem; color:#969696;">Order items unavailable</div>
+  {% endfor %}
+
+  <!-- footer -->
+  <div class="oc-footer">
+    <span class="oc-address">
+      {% if order.Address %}
+        <i class="fa fa-map-marker-alt mr-1"></i>
+        {{ order.Address.address_line_1 }}, {{ order.Address.city }}, {{ order.Address.state }}
+      {% endif %}
+    </span>
+    <div>
+      <span class="oc-tax">Tax: NPR {{ order.tax }}</span>
+      <span class="oc-total">NPR {{ order.order_total }}</span>
+    </div>
+  </div>
+</div>

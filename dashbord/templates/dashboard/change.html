@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .db-section { background:#f8f9fa; padding:40px 0 60px; }
+  .db-panel {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 20px rgba(0,0,0,0.06);
+    margin-bottom:20px; overflow:hidden;
+  }
+  .db-panel-header {
+    padding:18px 24px; border-bottom:1px solid #f0f0f0;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .db-panel-title {
+    font-size:1.05rem; font-weight:800; color:#212529; margin:0;
+    display:flex; align-items:center; gap:8px;
+  }
+  .db-panel-title i {
+    width:32px; height:32px; border-radius:8px;
+    background:#eef2fd; color:#3167eb;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.85rem;
+  }
+  .db-panel-body { padding:24px; }
+
+  .db-form-label {
+    font-size:0.75rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    color:#969696; margin-bottom:6px; display:block;
+  }
+  .db-form-control {
+    width:100%; padding:11px 14px;
+    border:1.5px solid #e0e0e0; border-radius:10px;
+    font-size:0.88rem; color:#212529; background:#fff;
+    outline:none; transition:border-color .2s;
+  }
+  .db-form-control:focus { border-color:#3167eb; }
+  
+  .db-save-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:#3167eb; color:#fff;
+    font-size:0.9rem; font-weight:800;
+    padding:13px 32px; border-radius:12px;
+    border:none; cursor:pointer;
+    transition:background .2s, transform .15s;
+    letter-spacing: 0.3px;
+  }
+  .db-save-btn:hover { background:#2452c8; color:#fff; transform:translateY(-2px); }
+</style>
+
+<section class="db-section">
+  <div class="container">
+    <div class="row">
+
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="col-lg-3 mb-4">
+        {% include "dashboard/includes/sidebar.html" with bar="changepassword" %}
+      </aside>
+
+      <!-- ===== MAIN ===== -->
+      <main class="col-lg-9">
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show small mb-3" role="alert">
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <h1 class="db-panel-title">
+              <i class="fa fa-lock"></i> Change Password
+            </h1>
+          </div>
+          <div class="db-panel-body">
+            <form method="POST" action="{% url 'changepassword' %}">
+              {% csrf_token %}
+
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <span class="db-form-label">Current Password</span>
+                  {{ form.current_password }}
+                  {% if form.current_password.errors %}
+                    <small class="text-danger d-block mt-1">{{ form.current_password.errors.0 }}</small>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <span class="db-form-label">New Password</span>
+                  {{ form.password }}
+                  {% if form.password.errors %}
+                    <small class="text-danger d-block mt-1">{{ form.password.errors.0 }}</small>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <span class="db-form-label">Confirm New Password</span>
+                  {{ form.cpassword }}
+                  {% if form.cpassword.errors %}
+                    <small class="text-danger d-block mt-1">{{ form.cpassword.errors.0 }}</small>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <button type="submit" class="db-save-btn">
+                  <i class="fa fa-key"></i> Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

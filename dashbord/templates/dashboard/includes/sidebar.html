@@ -1,0 +1,85 @@
+{% load static %}
+
+<!-- ====== DASHBOARD SIDEBAR ====== -->
+<style>
+  .db-sidebar {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .db-nav {
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+  }
+  .db-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #545454;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+  }
+  .db-nav li a:hover {
+    background: #f8f9fa;
+    color: #3167eb;
+  }
+  .db-nav li a.db-active {
+    background: #eef2fd;
+    color: #3167eb;
+    font-weight: 700;
+  }
+  .db-nav li a i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .db-nav-divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 6px 0;
+  }
+  .db-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fa3434;
+    text-decoration: none;
+    transition: background 0.18s;
+  }
+  .db-logout:hover { background: #fff5f5; color: #fa3434; }
+</style>
+
+<div class="db-sidebar">
+  <ul class="db-nav">
+    <li>
+      <a href="{% url 'dashbord' %}" class="{% if bar == 'dashbord' %}db-active{% endif %}">
+        <i class="fa fa-th-large"></i> Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'order' %}" class="{% if bar == 'order' %}db-active{% endif %}">
+        <i class="fa fa-box"></i> My Orders
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'changepassword' %}" class="{% if bar == 'changepassword' %}db-active{% endif %}">
+        <i class="fa fa-lock"></i> Change Password
+      </a>
+    </li>
+    <hr class="db-nav-divider">
+    <li>
+      <a href="{% url 'logout' %}" class="db-logout">
+        <i class="fa fa-power-off"></i> Log out
+      </a>
+    </li>
+  </ul>
+</div>

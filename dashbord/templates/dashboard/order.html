@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .db-section { background:#f8f9fa; padding:40px 0 60px; }
+  .db-panel {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 20px rgba(0,0,0,0.06);
+    margin-bottom:20px; overflow:hidden;
+  }
+  .db-panel-header {
+    padding:18px 24px; border-bottom:1px solid #f0f0f0;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .db-panel-title {
+    font-size:1.05rem; font-weight:800; color:#212529; margin:0;
+    display:flex; align-items:center; gap:8px;
+  }
+  .db-panel-title i {
+    width:32px; height:32px; border-radius:8px;
+    background:#eef2fd; color:#3167eb;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.85rem;
+  }
+  .db-panel-body { padding:24px; }
+
+  /* nav tabs */
+  .db-tabs {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 0 24px;
+    background: #fff;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    list-style: none;
+    overflow-x: auto;
+  }
+  .db-tabs .nav-link {
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    color: #545454 !important;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 14px 16px;
+    background: transparent !important;
+    transition: color 0.2s, border-color 0.2s;
+    border-radius: 0 !important;
+    white-space: nowrap;
+  }
+  .db-tabs .nav-link:hover {
+    color: #3167eb !important;
+  }
+  .db-tabs .nav-link.active {
+    color: #3167eb !important;
+    border-bottom-color: #3167eb !important;
+    font-weight: 800;
+  }
+
+  .db-empty-state {
+    text-align: center;
+    padding: 48px 20px;
+  }
+  .db-empty-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: #eef2fd; color: #3167eb;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin: 0 auto 16px;
+  }
+  .db-empty-state p { font-size: 0.9rem; color: #969696; margin-bottom: 18px; }
+  .db-shop-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #3167eb; color: #fff;
+    font-size: 0.88rem; font-weight: 700;
+    padding: 11px 26px; border-radius: 12px;
+    text-decoration: none; transition: background 0.2s;
+  }
+  .db-shop-btn:hover { background: #2452c8; color: #fff; }
+</style>
+
+<section class="db-section">
+  <div class="container">
+    <div class="row">
+
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="col-lg-3 mb-4">
+        {% include "dashboard/includes/sidebar.html" with bar="order" %}
+      </aside>
+
+      <!-- ===== MAIN ===== -->
+      <main class="col-lg-9">
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}dark{% endif %} alert-dismissible fade show small mb-3" role="alert">
+              <i class="fa fa-check-circle mr-2"></i> {{ message }}
+              <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <h1 class="db-panel-title">
+              <i class="fa fa-box"></i> My Order History
+            </h1>
+          </div>
+
+          <!-- Status Category Nav Tabs -->
+          <ul class="nav db-tabs" id="orderStatusTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="all-tab" data-toggle="tab" href="#all-orders" role="tab" aria-controls="all-orders" aria-selected="true">
+                All Orders ({{ orders.count }})
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="paid-tab" data-toggle="tab" href="#paid-orders" role="tab" aria-controls="paid-orders" aria-selected="false">
+                Paid ({{ paid_orders.count }})
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="ondelivery-tab" data-toggle="tab" href="#ondelivery-orders" role="tab" aria-controls="ondelivery-orders" aria-selected="false">
+                On Delivery ({{ ongoing_orders.count }})
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="delivered-tab" data-toggle="tab" href="#delivered-orders" role="tab" aria-controls="delivered-orders" aria-selected="false">
+                Delivered ({{ delivered_orders.count }})
+              </a>
+            </li>
+          </ul>
+
+          <div class="db-panel-body">
+            <div class="tab-content" id="orderStatusTabContent">
+
+              <!-- 1. All Orders Tab -->
+              <div class="tab-pane fade show active" id="all-orders" role="tabpanel" aria-labelledby="all-tab">
+                {% if orders %}
+                  {% for order in orders %}
+                    {% include "dashboard/includes/order_card.html" with order=order %}
+                  {% endfor %}
+                {% else %}
+                  <div class="db-empty-state">
+                    <div class="db-empty-icon"><i class="fa fa-box-open"></i></div>
+                    <p>You have no order history yet.</p>
+                    <a href="{% url 'store' %}" class="db-shop-btn"><i class="fa fa-shopping-bag"></i> Start Shopping</a>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- 2. Paid Orders Tab -->
+              <div class="tab-pane fade" id="paid-orders" role="tabpanel" aria-labelledby="paid-tab">
+                {% if paid_orders %}
+                  {% for order in paid_orders %}
+                    {% include "dashboard/includes/order_card.html" with order=order %}
+                  {% endfor %}
+                {% else %}
+                  <div class="db-empty-state">
+                    <div class="db-empty-icon"><i class="fa fa-receipt"></i></div>
+                    <p>No paid orders found.</p>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- 3. On Delivery / Ongoing Tab -->
+              <div class="tab-pane fade" id="ondelivery-orders" role="tabpanel" aria-labelledby="ondelivery-tab">
+                {% if ongoing_orders %}
+                  {% for order in ongoing_orders %}
+                    {% include "dashboard/includes/order_card.html" with order=order %}
+                  {% endfor %}
+                {% else %}
+                  <div class="db-empty-state">
+                    <div class="db-empty-icon"><i class="fa fa-truck"></i></div>
+                    <p>No orders currently on delivery.</p>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- 4. Delivered Orders Tab -->
+              <div class="tab-pane fade" id="delivered-orders" role="tabpanel" aria-labelledby="delivered-tab">
+                {% if delivered_orders %}
+                  {% for order in delivered_orders %}
+                    {% include "dashboard/includes/order_card.html" with order=order %}
+                  {% endfor %}
+                {% else %}
+                  <div class="db-empty-state">
+                    <div class="db-empty-icon"><i class="fa fa-check-circle"></i></div>
+                    <p>No delivered orders found.</p>
+                  </div>
+                {% endif %}
+              </div>
+
+            </div> <!-- tab-content.// -->
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

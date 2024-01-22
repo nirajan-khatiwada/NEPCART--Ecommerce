@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .db-section { background:#f8f9fa; padding:40px 0 60px; }
+
+  /* ---- stat cards ---- */
+  .db-stat {
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 2px 16px rgba(0,0,0,0.06);
+    padding:20px 22px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:20px;
+  }
+  .db-stat-icon {
+    width:48px; height:48px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; flex-shrink:0;
+  }
+  .db-stat-icon.blue  { background:#eef2fd; color:#3167eb; }
+  .db-stat-icon.green { background:#e6f9ee; color:#00b517; }
+  .db-stat-icon.gold  { background:#fff8e6; color:#e6a817; }
+  .db-stat-icon.red   { background:#fff0f0; color:#fa3434; }
+  .db-stat-val { font-size:1.4rem; font-weight:900; color:#212529; line-height:1; }
+  .db-stat-label { font-size:0.75rem; color:#969696; font-weight:600; margin-top:3px; }
+
+  /* ---- panel ---- */
+  .db-panel {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 20px rgba(0,0,0,0.06);
+    margin-bottom:20px; overflow:hidden;
+  }
+  .db-panel-header {
+    padding:16px 22px; border-bottom:1px solid #f0f0f0;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .db-panel-title {
+    font-size:0.95rem; font-weight:800; color:#212529; margin:0;
+    display:flex; align-items:center; gap:8px;
+  }
+  .db-panel-title i {
+    width:32px; height:32px; border-radius:8px;
+    background:#eef2fd; color:#3167eb;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.82rem;
+  }
+  .db-panel-body { padding:22px; }
+  .db-edit-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:0.78rem; font-weight:700; color:#3167eb;
+    border:1.5px solid #3167eb; padding:6px 14px;
+    border-radius:20px; text-decoration:none;
+    background:none; cursor:pointer;
+    transition:background .2s, color .2s;
+  }
+  .db-edit-btn:hover { background:#3167eb; color:#fff; }
+
+  /* ---- address + info rows ---- */
+  .db-info-row {
+    display:flex; align-items:center; gap:10px;
+    font-size:0.88rem; color:#545454; padding:7px 0;
+    border-bottom:1px solid #f5f5f5;
+  }
+  .db-info-row:last-child { border-bottom:none; }
+  .db-info-row i { width:20px; color:#3167eb; text-align:center; flex-shrink:0; }
+  .db-info-row strong { color:#212529; }
+
+  /* ---- address form (collapsible) ---- */
+  .db-form-box {
+    background:#f8f9fa; border-radius:12px;
+    padding:20px; margin-bottom:18px;
+    border:1px solid #e9ecef;
+  }
+  .db-form-label {
+    font-size:0.75rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    color:#969696; margin-bottom:5px; display:block;
+  }
+  .db-form-control {
+    width:100%; padding:10px 14px;
+    border:1.5px solid #e0e0e0; border-radius:10px;
+    font-size:0.88rem; color:#212529; background:#fff;
+    outline:none; transition:border-color .2s;
+  }
+  .db-form-control:focus { border-color:#3167eb; }
+  .db-save-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    background:#3167eb; color:#fff;
+    font-size:0.88rem; font-weight:700;
+    padding:11px 26px; border-radius:10px;
+    border:none; cursor:pointer;
+    transition:background .2s;
+  }
+  .db-save-btn:hover { background:#2452c8; }
+
+  /* ---- recent orders table ---- */
+  .db-orders-table { width:100%; border-collapse:collapse; }
+  .db-orders-table th {
+    font-size:0.7rem; font-weight:700; letter-spacing:0.6px;
+    text-transform:uppercase; color:#969696;
+    padding:10px 16px; background:#f8f9fa;
+    border-bottom:1px solid #f0f0f0; text-align:left;
+  }
+  .db-orders-table td {
+    padding:12px 16px; font-size:0.85rem;
+    color:#545454; border-bottom:1px solid #f5f5f5;
+  }
+  .db-orders-table tr:last-child td { border-bottom:none; }
+  .db-orders-table td strong { color:#212529; }
+  .db-status-pill {
+    font-size:0.68rem; font-weight:700; letter-spacing:0.4px;
+    text-transform:uppercase; padding:3px 10px; border-radius:20px;
+  }
+  .db-status-new,.db-status-pending { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+  .db-status-paid { background:#cce5ff; color:#004085; border:1px solid #b8daff; }
+  .db-status-ondelivery,.db-status-processing { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+  .db-status-delivered,.db-status-completed { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+  .db-status-cancelled { background:#fff0f0; color:#c82333; border:1px solid #f5bcbc; }
+  .db-total-amount { font-weight:800; color:#3167eb !important; }
+</style>
+
+<section class="db-section">
+  <div class="container">
+    <div class="row">
+
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="col-lg-3 mb-4">
+        {% include "dashboard/includes/sidebar.html" with bar="dashbord" %}
+      </aside>
+
+      <!-- ===== MAIN ===== -->
+      <main class="col-lg-9">
+
+        <!-- alerts -->
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show small mb-3" role="alert">
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- ---- STAT CARDS ---- -->
+        <div class="row mb-2">
+          <div class="col-6 col-md-3">
+            <div class="db-stat">
+              <div class="db-stat-icon blue"><i class="fa fa-box"></i></div>
+              <div>
+                <div class="db-stat-val">{{ order_count }}</div>
+                <div class="db-stat-label">Total Orders</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="db-stat">
+              <div class="db-stat-icon gold"><i class="fa fa-clock"></i></div>
+              <div>
+                <div class="db-stat-val">{{ pending_count }}</div>
+                <div class="db-stat-label">Pending</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="db-stat">
+              <div class="db-stat-icon green"><i class="fa fa-check-circle"></i></div>
+              <div>
+                <div class="db-stat-val">{{ delivered_count }}</div>
+                <div class="db-stat-label">Delivered</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="db-stat">
+              <div class="db-stat-icon red"><i class="fa fa-wallet"></i></div>
+              <div>
+                <div class="db-stat-val" style="font-size:1.1rem;">NPR {{ total_spent }}</div>
+                <div class="db-stat-label">Total Spent</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- PROFILE + ADDRESS PANEL ---- -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <h2 class="db-panel-title">
+              <i class="fa fa-user"></i> Profile &amp; Delivery Address
+            </h2>
+            <button class="db-edit-btn" type="button" data-toggle="collapse" data-target="#editAddressCollapse" aria-expanded="false">
+              <i class="fa fa-edit"></i> Edit Address
+            </button>
+          </div>
+          <div class="db-panel-body">
+
+            <!-- collapsible edit form -->
+            <div class="collapse mb-3" id="editAddressCollapse">
+              <div class="db-form-box">
+                <h6 style="font-size:0.88rem;font-weight:800;color:#212529;margin-bottom:16px;">Update Delivery Address</h6>
+                <form method="POST" action="{% url 'dashbord' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="update_address">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="db-form-label">Country</label>
+                      {{ address_form.country }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="db-form-label">State / Region</label>
+                      {{ address_form.state }}
+                    </div>
+                    <div class="col-md-8 mb-3">
+                      <label class="db-form-label">Street Address</label>
+                      {{ address_form.address_line_1 }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label class="db-form-label">City</label>
+                      {{ address_form.city }}
+                    </div>
+                  </div>
+                  <button type="submit" class="db-save-btn">
+                    <i class="fa fa-save"></i> Save Address
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- info rows -->
+            <div class="row">
+              <div class="col-md-6">
+                <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#969696;margin-bottom:10px;">Contact Info</p>
+                <div class="db-info-row"><i class="fa fa-user"></i> <span><strong>{{ request.user.first_name }} {{ request.user.last_name }}</strong></span></div>
+                <div class="db-info-row"><i class="fa fa-envelope"></i> <span>{{ request.user.email }}</span></div>
+                <div class="db-info-row"><i class="fa fa-phone"></i> <span>{{ request.user.phone_number|default:"Not set" }}</span></div>
+              </div>
+              <div class="col-md-6">
+                <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#969696;margin-bottom:10px;">Delivery Address</p>
+                {% if orderaddr %}
+                  <div class="db-info-row"><i class="fa fa-map-marker-alt"></i> <span>{{ orderaddr.address_line_1 }}</span></div>
+                  <div class="db-info-row"><i class="fa fa-city"></i> <span>{{ orderaddr.city }}, {{ orderaddr.state }}</span></div>
+                  <div class="db-info-row"><i class="fa fa-globe"></i> <span>{{ orderaddr.country }}</span></div>
+                {% else %}
+                  <div class="db-info-row">
+                    <i class="fa fa-map-marker-alt"></i>
+                    <span style="color:#969696;font-style:italic;">No address saved. Click "Edit Address" to add one.</span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ---- RECENT ORDERS ---- -->
+        {% if recent_orders %}
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <h2 class="db-panel-title">
+              <i class="fa fa-history"></i> Recent Orders
+            </h2>
+            <a href="{% url 'order' %}" style="font-size:0.78rem;font-weight:700;color:#3167eb;text-decoration:none;">View all &rarr;</a>
+          </div>
+          <table class="db-orders-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Tax</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for o in recent_orders %}
+              <tr>
+                <td><strong>#{{ o.order_number }}</strong></td>
+                <td>{% if o.created_at %}{{ o.created_at|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                <td><span class="db-status-pill db-status-{{ o.status|lower|slugify }}">{{ o.status }}</span></td>
+                <td>NPR {{ o.tax }}</td>
+                <td class="db-total-amount">NPR {{ o.order_total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+
+      </main>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
