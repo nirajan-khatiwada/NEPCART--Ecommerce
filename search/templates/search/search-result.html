@@ -1,0 +1,95 @@
+{%extends 'base.html'%}
+{%block content%}
+
+
+<!-- ========================= SECTION PAGETOP ========================= -->
+<section class="section-pagetop bg">
+<div class="container">
+	<h2 class="title-page">Search Result</h2>
+</div> <!-- container //  -->
+</section>
+<!-- ========================= SECTION INTRO END// ========================= -->
+
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-content padding-y">
+<div class="container">
+
+<div class="row">
+	<aside class="col-md-3">
+		
+<div class="card">
+	<article class="filter-group">
+		<header class="card-header">
+			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
+				<i class="icon-control fa fa-chevron-down"></i>
+				<h6 class="title">Categories</h6>
+			</a>
+		</header>
+		<div class="filter-content collapse show" id="collapse_1" style="">
+			<div class="card-body">
+				
+				<ul class="list-menu">
+					{%for x in  catogery%}
+					<li><a href="{%url 'product_by_category' category_slug=x.slug%}">{{x}} </a></li>
+					{%endfor%}
+				</ul>
+
+			</div> <!-- card-body.// -->
+		</div>
+	</article> <!-- filter-group  .// -->
+	
+</div> <!-- card.// -->
+
+	</aside> <!-- col.// -->
+	<main class="col-md-9">
+
+<header class="border-bottom mb-4 pb-3">
+		<div class="form-inline">
+			<span class="mr-md-auto">{{len_product}} Items found </span>
+			
+		</div>
+</header><!-- sect-heading -->
+
+<div class="row">
+	{%for product in data%}
+	<div class="col-md-4">
+		<figure class="card card-product-grid">
+			<div class="img-wrap"> 
+				<img src="{{product.image.url}}">
+				
+			</div> <!-- img-wrap.// -->
+			<figcaption class="info-wrap">
+				<div class="fix-height">
+					<a href="{%url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug%}" class="title">{{product.product_name}}</a>
+					<div class="price-wrap mt-2 d-flex justify-content-between align-items-center">
+						<div>
+							{% if product.initial_price > product.price %}
+								<del class="text-muted mr-2">NPR {{ product.initial_price }}</del>
+							{% endif %}
+							<span class="price font-weight-bold text-dark">NPR {{ product.price }}</span>
+						</div>
+						{% if product.stock > 0 and product.is_available %}
+							<span class="badge border border-dark text-dark px-2 py-1">In Stock ({{ product.stock }})</span>
+						{% else %}
+							<span class="badge border border-dark text-muted px-2 py-1">Out of Stock</span>
+						{% endif %}
+					</div> <!-- price-wrap.// -->
+				</div>
+				<a href="{%url 'product_detail' category_slug=product.catogery.category_name product_slug=product.slug%}" class="btn btn-block btn-primary">Buy It </a>	
+			</figcaption>
+		</figure>
+	</div> <!-- col.// -->
+
+	{%endfor%}
+</div> <!-- row end.// -->
+
+	</main> <!-- col.// -->
+
+</div>
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+<!-- ========================= FOOTER ========================= -->
+{%endblock%}
