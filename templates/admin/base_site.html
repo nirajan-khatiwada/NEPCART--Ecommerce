@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Completely hide top navbar across Jazzmin admin panel */
+.main-header.navbar,
+header.main-header,
+nav.main-header,
+.navbar-expand {
+    display: none !important;
+}
+
+/* Adjust sidebar to start from top of viewport */
+.main-sidebar {
+    top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Adjust content wrapper padding */
+.content-wrapper {
+    margin-top: 0 !important;
+    padding-top: 15px !important;
+}
+</style>
+{% endblock %}
