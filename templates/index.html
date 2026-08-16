@@ -1,34 +1,462 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-<section class="section-intro padding-y-sm">
+
+<!-- ============================================================ -->
+<!--  SCOPED STYLES — only for product cards on the landing page  -->
+<!-- ============================================================ -->
+<style>
+  /* ---- product card ---- */
+  .nc-card {
+    position: relative;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .nc-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+  }
+
+  /* ---- image area ---- */
+  .nc-card__img-wrap {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    background: #f7f7f7;
+    flex-shrink: 0;
+  }
+  .nc-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .nc-card:hover .nc-card__img-wrap img {
+    transform: scale(1.06);
+  }
+
+
+  /* ---- discount ribbon ---- */
+  .nc-ribbon {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    background: #ff4c4c;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 4px 10px 4px 8px;
+    border-radius: 3px 0 0 3px;
+    pointer-events: none;
+  }
+  .nc-ribbon::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -6px;
+    border-style: solid;
+    border-width: 6px 8px 0 0;
+    border-color: #cc2222 transparent transparent transparent;
+  }
+
+  /* ---- overlay quick-view hint ---- */
+  .nc-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,15,15,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .nc-card:hover .nc-overlay { opacity: 1; }
+  .nc-overlay span {
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 30px;
+    letter-spacing: 0.4px;
+    pointer-events: none;
+  }
+
+  /* ---- info area ---- */
+  .nc-card__body {
+    padding: 14px 16px 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nc-card__name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nc-card__name:hover { color: #3167eb; }
+
+  .nc-card__pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+  .nc-price-now {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+  .nc-price-was {
+    font-size: 0.78rem;
+    color: #aaa;
+    text-decoration: line-through;
+  }
+
+  /* ---- section heading bar ---- */
+  .nc-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .nc-section-header h3 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #111;
+    margin: 0;
+  }
+  .nc-see-all {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #3167eb;
+    text-decoration: none;
+    border: 1.5px solid #3167eb;
+    padding: 5px 14px;
+    border-radius: 20px;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+  .nc-see-all:hover { background: #3167eb; color: #fff; }
+
+  /* ---- hero carousel ---- */
+  .nc-hero-wrap {
+    overflow: hidden;
+    position: relative;
+    border-radius: 0.35rem;
+    border: 1px solid #dee2e6;
+  }
+  .nc-hero-wrap .carousel-inner,
+  .nc-hero-wrap .carousel-item {
+    height: 380px;
+  }
+  .nc-hero-wrap .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .nc-hero-wrap .carousel-caption {
+    bottom: 40px;
+    text-align: left;
+    left: 6%;
+    right: auto;
+    max-width: 520px;
+  }
+  .nc-hero-wrap .carousel-caption h2 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1.2;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    margin-bottom: 10px;
+  }
+  .nc-hero-wrap .carousel-caption p {
+    font-size: 1rem;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+    margin-bottom: 18px;
+  }
+  .nc-hero-wrap .carousel-caption .nc-hero-btn {
+    display: inline-block;
+    background: #fff;
+    color: #111;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 10px 26px;
+    border-radius: 30px;
+    text-decoration: none;
+    letter-spacing: 0.4px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nc-hero-wrap .carousel-caption .nc-hero-btn:hover {
+    background: #3167eb;
+    color: #fff;
+  }
+  .nc-slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.08) 70%, rgba(0,0,0,0) 100%);
+    pointer-events: none;
+  }
+  .nc-hero-wrap .carousel-control-prev,
+  .nc-hero-wrap .carousel-control-next {
+    width: 48px;
+    height: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    bottom: auto;
+    background: rgba(255,255,255,0.18);
+    border-radius: 50%;
+    opacity: 1;
+    backdrop-filter: blur(4px);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    transition: background 0.2s;
+  }
+  .nc-hero-wrap .carousel-control-prev { left: 18px; }
+  .nc-hero-wrap .carousel-control-next { right: 18px; }
+  .nc-hero-wrap .carousel-control-prev:hover,
+  .nc-hero-wrap .carousel-control-next:hover {
+    background: rgba(255,255,255,0.38);
+  }
+  .nc-hero-wrap .carousel-indicators li {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    border: none;
+    margin: 0 4px;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .nc-hero-wrap .carousel-indicators .active {
+    background: #fff;
+    transform: scale(1.3);
+  }
+  @media (max-width: 768px) {
+    .nc-hero-wrap .carousel-inner,
+    .nc-hero-wrap .carousel-item { height: 220px; }
+    .nc-hero-wrap .carousel-caption h2 { font-size: 1.2rem; }
+    .nc-hero-wrap .carousel-caption { bottom: 16px; }
+  }
+</style>
+
+<!-- ========================= SECTION MAIN HERO BANNER ========================= -->
+<section class="section-intro padding-y-sm bg-white">
 <div class="container">
-    <div class="intro-banner-wrap">
-        <img src="{% static 'images/banners/1.jpg' %}" class="img-fluid rounded">
-    </div>
-</div>
-</section>
-<section class="section-name padding-y-sm">
-<div class="container">
-    <header class="section-heading">
-        <a href="{% url 'store' %}" class="btn btn-outline-primary float-right">See all</a>
-        <h3 class="section-title">Popular products</h3>
-    </header>
-    <div class="row">
-        {% for product in data %}
-        <div class="col-md-3">
-            <div class="card card-product-grid">
-                <a href="{% url 'product_detail' category_slug=product.catogery.category_name product_slug=product.slug %}" class="img-wrap">
-                    <img src="{{ product.image.url }}">
-                </a>
-                <figcaption class="info-wrap">
-                    <a href="{% url 'product_detail' category_slug=product.catogery.category_name product_slug=product.slug %}" class="title">{{ product.product_name }}</a>
-                    <div class="price mt-1">{{ product.price }}</div>
-                </figcaption>
-            </div>
+  <div class="nc-hero-wrap">
+
+    <div id="ncHeroCarousel" class="carousel slide" data-ride="carousel" data-interval="4500">
+
+      <!-- indicators -->
+      <ol class="carousel-indicators">
+        <li data-target="#ncHeroCarousel" data-slide-to="0" class="active"></li>
+        <li data-target="#ncHeroCarousel" data-slide-to="1"></li>
+        <li data-target="#ncHeroCarousel" data-slide-to="2"></li>
+      </ol>
+
+      <div class="carousel-inner">
+
+        <!-- Slide 1 — Fashion / Shopping -->
+        <div class="carousel-item active">
+          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1400&q=80&auto=format&fit=crop"
+               alt="Fashion Shopping">
+          <div class="nc-slide-overlay"></div>
+          <div class="carousel-caption d-flex flex-column align-items-start">
+            <h2>New Season,<br>New Style</h2>
+            <p>Discover the latest fashion trends delivered to your door.</p>
+            <a href="{% url 'store' %}" class="nc-hero-btn">Shop Now</a>
+          </div>
         </div>
-        {% endfor %}
+
+        <!-- Slide 2 — Footwear -->
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=1400&q=80&auto=format&fit=crop"
+               alt="Premium Footwear">
+          <div class="nc-slide-overlay"></div>
+          <div class="carousel-caption d-flex flex-column align-items-start">
+            <h2>Step Into<br>Comfort</h2>
+            <p>Top-rated footwear brands at unbeatable prices.</p>
+            <a href="{% url 'store' %}" class="nc-hero-btn">Explore</a>
+          </div>
+        </div>
+
+        <!-- Slide 3 — Lifestyle -->
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&q=80&auto=format&fit=crop"
+               alt="Shop Interior">
+          <div class="nc-slide-overlay"></div>
+          <div class="carousel-caption d-flex flex-column align-items-start">
+            <h2>Everything<br>You Need</h2>
+            <p>From electronics to lifestyle — all in one place.</p>
+            <a href="{% url 'store' %}" class="nc-hero-btn">Browse All</a>
+          </div>
+        </div>
+
+      </div><!-- /.carousel-inner -->
+
+      <!-- controls -->
+      <a class="carousel-control-prev" href="#ncHeroCarousel" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      </a>
+      <a class="carousel-control-next" href="#ncHeroCarousel" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      </a>
+
     </div>
-</div>
+  </div><!-- /.nc-hero-wrap -->
+</div><!-- /.container -->
 </section>
+<!-- ========================= SECTION MAIN END// ========================= -->
+
+<!-- ========================= 1. POPULAR PRODUCTS ========================= -->
+<section class="section-name padding-y-sm bg-white border-top">
+<div class="container">
+
+	<div class="nc-section-header">
+		<h3>Popular Products</h3>
+		<a href="{% url 'store' %}" class="nc-see-all">See all &rarr;</a>
+	</div>
+
+	<div class="row">
+		{% for product in popular_products %}
+		<div class="col-md-3 col-sm-6 mb-4">
+			<div class="nc-card">
+				<!-- image -->
+				<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__img-wrap">
+					<img src="{{ product.image.url }}" alt="{{ product.product_name }}">
+
+					{% if product.initial_price > product.price %}
+						{% widthratio product.price product.initial_price 100 as pct %}
+						<span class="nc-ribbon">{{ 100|add:"-"|add:pct }}% OFF</span>
+					{% endif %}
+
+					<div class="nc-overlay"><span>View Details</span></div>
+				</a>
+
+				<!-- info -->
+				<div class="nc-card__body">
+					<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__name">{{ product.product_name }}</a>
+					<div class="nc-card__pricing">
+						<span class="nc-price-now">NPR {{ product.price }}</span>
+						{% if product.initial_price > product.price %}
+							<span class="nc-price-was">NPR {{ product.initial_price }}</span>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div> <!-- col.// -->
+		{% empty %}
+		<div class="col-12 py-3 text-center text-muted">No popular products available right now.</div>
+		{% endfor %}
+	</div> <!-- row.// -->
+
+</div><!-- container // -->
+</section>
+<!-- ========================= POPULAR PRODUCTS END ========================= -->
+
+<!-- ========================= 2. FEATURED PRODUCTS ========================= -->
+<section class="section-name padding-y-sm bg-white border-top">
+<div class="container">
+
+	<div class="nc-section-header">
+		<h3>Featured Products</h3>
+		<a href="{% url 'store' %}" class="nc-see-all">See all &rarr;</a>
+	</div>
+
+	<div class="row">
+		{% for product in featured_products %}
+		<div class="col-md-3 col-sm-6 mb-4">
+			<div class="nc-card">
+				<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__img-wrap">
+					<img src="{{ product.image.url }}" alt="{{ product.product_name }}">
+
+					{% if product.initial_price > product.price %}
+						{% widthratio product.price product.initial_price 100 as pct %}
+						<span class="nc-ribbon">{{ 100|add:"-"|add:pct }}% OFF</span>
+					{% endif %}
+
+					<div class="nc-overlay"><span>View Details</span></div>
+				</a>
+
+				<div class="nc-card__body">
+					<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__name">{{ product.product_name }}</a>
+					<div class="nc-card__pricing">
+						<span class="nc-price-now">NPR {{ product.price }}</span>
+						{% if product.initial_price > product.price %}
+							<span class="nc-price-was">NPR {{ product.initial_price }}</span>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div> <!-- col.// -->
+		{% empty %}
+		<div class="col-12 py-3 text-center text-muted">No featured products available right now.</div>
+		{% endfor %}
+	</div> <!-- row.// -->
+
+</div><!-- container // -->
+</section>
+<!-- ========================= FEATURED PRODUCTS END ========================= -->
+
+<!-- ========================= 3. SHOP BY CATEGORY ========================= -->
+{% for item in category_products %}
+<section class="section-name padding-y-sm bg-white border-top">
+<div class="container">
+
+	<div class="nc-section-header">
+		<h3>{{ item.category.category_name|capfirst }}</h3>
+		<a href="{% url 'store' %}?category={{ item.category.slug }}" class="nc-see-all">See all &rarr;</a>
+	</div>
+
+	<div class="row">
+		{% for product in item.products %}
+		<div class="col-md-3 col-sm-6 mb-4">
+			<div class="nc-card">
+				<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__img-wrap">
+					<img src="{{ product.image.url }}" alt="{{ product.product_name }}">
+
+					{% if product.initial_price > product.price %}
+						{% widthratio product.price product.initial_price 100 as pct %}
+						<span class="nc-ribbon">{{ 100|add:"-"|add:pct }}% OFF</span>
+					{% endif %}
+
+					<div class="nc-overlay"><span>View Details</span></div>
+				</a>
+
+				<div class="nc-card__body">
+					<a href="{% url 'product_detail' category_slug=product.catogery.slug product_slug=product.slug %}" class="nc-card__name">{{ product.product_name }}</a>
+					<div class="nc-card__pricing">
+						<span class="nc-price-now">NPR {{ product.price }}</span>
+						{% if product.initial_price > product.price %}
+							<span class="nc-price-was">NPR {{ product.initial_price }}</span>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div> <!-- col.// -->
+		{% endfor %}
+	</div> <!-- row.// -->
+
+</div><!-- container // -->
+</section>
+{% endfor %}
+<!-- ========================= SHOP BY CATEGORY END ========================= -->
+
 {% endblock %}

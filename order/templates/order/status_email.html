@@ -41,19 +41,19 @@
                             <!-- Dynamic Status Message -->
                             {% if status == 'Paid' %}
                                 <div style="background-color: #e6f9ee; border: 1px solid #c3e6cb; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; color: #00b517; font-size: 14px; font-weight: 700;">
-                                    Thank you. Your payment of NPR {{ order.order_total }} has been verified and confirmed.
+                                    âœ“ Thank you! Your payment of NPR {{ order.order_total }} has been verified and confirmed.
                                 </div>
                             {% elif status == 'Ongoing' or status == 'On Delivery' %}
                                 <div style="background-color: #eef2fd; border: 1px solid #b8cdf8; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; color: #3167eb; font-size: 14px; font-weight: 700;">
-                                    Your order is currently on its way to your delivery address.
+                                    ðŸšš Good news! Your order is currently on its way to your delivery address.
                                 </div>
                             {% elif status == 'Deliverred' or status == 'Delivered' %}
                                 <div style="background-color: #e6f9ee; border: 1px solid #c3e6cb; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; color: #00b517; font-size: 14px; font-weight: 700;">
-                                    Your order has been delivered. Thank you for shopping with NepCart.
+                                    ðŸŽ‰ Your order has been delivered! Thank you for shopping with NepCart.
                                 </div>
                             {% elif status == 'Cancaled' or status == 'Canceled' %}
                                 <div style="background-color: #fff0f0; border: 1px solid #f5bcbc; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; color: #fa3434; font-size: 14px; font-weight: 700;">
-                                    Your order has been canceled. If you have questions, please contact customer support.
+                                    âœ• Your order has been canceled. If you have questions, please contact customer support.
                                 </div>
                             {% endif %}
 
