@@ -3,6 +3,7 @@ from product.models import Product
 from django.http import Http404,HttpResponse
 from category.models import category
 from .forms import ProductCustomSizeColor
+from .recommendations import get_jaccard_recommendations
 
 # Create your views here.
 
@@ -30,7 +31,13 @@ def product_display(request, category_slug, product_slug):
     try:
         shapeandsize = ProductCustomSizeColor(product_slug)
         data = Product.objects.get(slug=product_slug)
-        return render(request, "store/product-detail.html", {'catogery': category.objects.all(), 'data': data, 'form': shapeandsize})
+        recommended_products = get_jaccard_recommendations(data, limit=4)
+        return render(request, "store/product-detail.html", {
+            'catogery': category.objects.all(),
+            'data': data,
+            'form': shapeandsize,
+            'recommended_products': recommended_products
+        })
     except Exception:
         raise Http404()
 

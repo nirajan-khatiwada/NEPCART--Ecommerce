@@ -154,6 +154,12 @@ The admin dashboard is accessible at: `http://127.0.0.1:8000/admin/`
 - Unique order number generation with timestamp encoding.
 - Django post-save signals dispatching automated order confirmation and status update emails.
 
+### Recommendation Engine (Collaborative Filtering)
+- **Item-to-Item Collaborative Filtering**: Employs the **Jaccard Similarity Coefficient** to dynamically identify and suggest items frequently carted or purchased together:
+  $$\text{Jaccard Similarity}(A, B) = \frac{|U_A \cap U_B|}{|U_A \cup U_B|}$$
+- **Zero Hardcoding**: Queries real-time `CartItem` co-occurrences dynamically across user and session identifiers.
+- **Cold-Start Resilience**: When co-occurrence history is new or sparse, the engine automatically backfills recommendations using category affinity and store-wide popularity metrics, ensuring recommendations never fail to display.
+
 ---
 
 ## Project Structure

@@ -8,6 +8,10 @@
 __pycache__/
 *.sqlite3
 db.sqlite3
+.venv/
+venv/
+ENV/
+env/
 
 # Static & Media files
 /staticfiles/
