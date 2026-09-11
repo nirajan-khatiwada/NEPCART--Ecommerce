@@ -85,9 +85,22 @@ for item in target_interactions:
 ---
 
 ### Step 2: Look at What ELSE Those Past Customers Bought
-Next, the code checks the purchase history of those past shoppers to see what other items they bought along with the Laptop:
+Next, the code finds all other products in the database and builds a map of which customers bought each one. Then it calculates the Jaccard overlap with the target product:
 
 ```python
+# Find all other cart items from available products (excluding the target product)
+co_items = CartItem.objects.filter(
+    product__is_available=True
+).exclude(product=target_product)
+
+# Build a map: each candidate product -> set of customers who bought it
+product_users = defaultdict(set)
+for item in co_items:
+    key = f"u_{item.user_id}" if item.user_id else f"c_{item.cart_id}"
+    if key:
+        product_users[item.product_id].add(key)
+
+# Calculate Jaccard Similarity for each candidate product
 for prod_id, users_candidate in product_users.items():
     intersection = len(users_target.intersection(users_candidate))
     if intersection > 0:
@@ -96,7 +109,8 @@ for prod_id, users_candidate in product_users.items():
         similarities[prod_id] = score
 ```
 * **Plain explanation:** 
-  * The system checks: *"When past customers bought this Laptop, what other items did they put in their baskets?"*
+  * The system queries the database for every other available product and groups them by which customers bought them.
+  * Then it checks: *"When past customers bought this Laptop, what other items did they put in their baskets?"*
   * If 10 past customers bought the Laptop, and 8 of them also bought a **Mouse**, the Mouse gets a high similarity score.
   * `intersection` = How many past customers bought **both** the Laptop and the other item.
   * `union` = Total past customers across either item.
@@ -105,13 +119,18 @@ for prod_id, users_candidate in product_users.items():
 ---
 
 ### Step 3: Put the Best Matches at the Top
-The code sorts all candidate products from highest score to lowest score:
+The code sorts all candidate products from highest score to lowest score, then re-orders the database results to match that ranking:
 
 ```python
 ranked_product_ids = sorted(similarities, key=similarities.get, reverse=True)
 recommended_products = list(Product.objects.filter(id__in=ranked_product_ids, is_available=True))
+
+# Preserve score ordering (database doesn't guarantee order)
+id_to_score = {pid: similarities.get(pid, 0) for pid in ranked_product_ids}
+recommended_products.sort(key=lambda p: id_to_score.get(p.id, 0), reverse=True)
+recommended_products = recommended_products[:limit]
 ```
-* **Plain explanation:** The items most frequently paired with the current product are moved to the front of the list.
+* **Plain explanation:** First, the product IDs are sorted by their Jaccard score (highest first). Then, because the database query doesn't return results in that same order, the code re-sorts the fetched products in Python to match the score ranking. Finally, it takes only the top 4 (or whatever the `limit` is).
 
 ---
 
@@ -131,24 +150,45 @@ if len(recommended_products) < limit:
     )
     recommended_products.extend(category_fallback)
 ```
-* **Plain explanation:** If there are fewer than 4 recommendations, it grabs popular available items from the same category so the section always has 4 relevant items to display.
+* **Plain explanation:** If there are fewer than 4 recommendations, it grabs available items from the same category to fill the remaining spots.
 
 ---
 
-### Step 5: Send to the Webpage to Display
+### Step 5: Store-Wide Fallback (Secondary Safety Net)
+If even the same category doesn't have enough products to fill all 4 slots, the code falls back to **any available product** across the entire store:
+
+```python
+if len(recommended_products) < limit:
+    needed = limit - len(recommended_products)
+    existing_ids = {p.id for p in recommended_products} | {target_product.id}
+    general_fallback = list(
+        Product.objects.filter(
+            is_available=True
+        ).exclude(id__in=existing_ids)[:needed]
+    )
+    recommended_products.extend(general_fallback)
+```
+* **Plain explanation:** This is a second safety net. If the same category has very few products, the system pulls from the entire store catalog to guarantee the page always shows 4 recommendation cards. The section is never left empty.
+
+---
+
+### Step 6: Send to the Webpage to Display
 Finally, in `store/views.py`, the view calls this function and sends the resulting products to the template:
 
 ```python
 def product_display(request, category_slug, product_slug):
-    shapeandsize = ProductCustomSizeColor(product_slug)
-    data = Product.objects.get(slug=product_slug)
-    recommended_products = get_jaccard_recommendations(data, limit=4)
-    return render(request, "store/product-detail.html", {
-        'catogery': category.objects.all(),
-        'data': data,
-        'form': shapeandsize,
-        'recommended_products': recommended_products
-    })
+    try:
+        shapeandsize = ProductCustomSizeColor(product_slug)
+        data = Product.objects.get(slug=product_slug)
+        recommended_products = get_jaccard_recommendations(data, limit=4)
+        return render(request, "store/product-detail.html", {
+            'catogery': category.objects.all(),
+            'data': data,
+            'form': shapeandsize,
+            'recommended_products': recommended_products
+        })
+    except Exception:
+        raise Http404()
 ```
 And in `store/templates/store/product-detail.html`, an HTML loop displays each item card with its image, title, and price under **"Frequently Bought Together"**.
 
@@ -157,4 +197,4 @@ And in `store/templates/store/product-detail.html`, an HTML loop displays each i
 ## 6. Summary for Viva & Defense
 
 When asked: **"Explain your recommendation algorithm"**:
-> *"Because NepCart does not have reviews or star ratings, we cannot use traditional rating-based algorithms like Pearson Correlation. Instead, we implemented Item-to-Item Collaborative Filtering using the Jaccard Similarity Coefficient based on real cart and order co-occurrences. The algorithm calculates the ratio of shoppers who bought both items together over total unique shoppers ($|A \cap B| / |A \cup B|$) and suggests the highest-scoring items under 'Frequently Bought Together'. If an item is brand new with no history, it automatically backfills with items from the same category to handle the cold-start problem."*
+> *"Because NepCart does not have reviews or star ratings, we cannot use traditional rating-based algorithms like Pearson Correlation. Instead, we implemented Item-to-Item Collaborative Filtering using the Jaccard Similarity Coefficient based on real cart and order co-occurrences. The algorithm calculates the ratio of shoppers who bought both items together over total unique shoppers ($|A \cap B| / |A \cup B|$) and suggests the highest-scoring items under 'Frequently Bought Together'. If an item is brand new with no history, it uses a two-tier cold-start fallback: first backfilling from the same category, and if that's still not enough, from the entire store catalog."*

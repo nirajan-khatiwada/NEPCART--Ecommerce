@@ -121,8 +121,8 @@ sequenceDiagram
     participant Template as Template Engine (.html)
 
     User->>Browser: 1. Clicks link / Submits form
-    Browser->>URL: 2. Dispatches HTTP Request (GET /product/jacket/)
-    URL->>View: 3. Routes request to matched view (jacket_detail)
+    Browser->>URL: 2. Dispatches HTTP Request (GET /store/clothing/jacket/)
+    URL->>View: 3. Routes request to matched view (product_display)
     View->>Model: 4. Calls ORM query (Product.objects.get(...))
     Model->>DB: 5. Sends SQL query (SELECT * FROM product...)
     DB-->>Model: 6. Returns raw table rows / data
@@ -187,7 +187,7 @@ flowchart TD
     Step9 --> Step10[10. Server checks Khalti lookup API to confirm status is 'Completed']
     Step10 --> Step11[11. Save Order in Database with status = 'Paid']
     Step11 --> Step12[12. Deduct Purchased Quantities from Warehouse Stock]
-    Step12 --> Step13[13. Clear Items from Shopping Cart]
+    Step12 --> Step13[13. Flag Cart Items as Ordered]
     Step13 --> Step14[14. Send HTML Invoice Email to Customer with Order Details]
     Step14 --> Step15[15. Display Thank You / Invoice Screen to User]
     Step15 --> Step16[16. Staff updates status to Delivered in Admin Panel]
@@ -212,7 +212,7 @@ flowchart TD
 * Clicking any item opens the detail view (`store/views.py:product_display`), showing product photos, description, price, available variations (sizes and colors), and **Frequently Bought Together** recommendations.
 
 #### 2. Selecting Variations & Adding to Cart
-* The shopper selects a size and color from dropdowns and clicks **Add to Cart** (`cart/views.py:add_cart`).
+* The shopper selects a size and color from dropdowns and clicks **Add to Cart** (`cart/views.py:add_to_cart`).
 * If the user is a guest, items are saved using the browser's `session_key`. If logged in, items are linked to the user account.
 * On the cart page (`cart/views.py:cart`), the system computes:
   - **Subtotal:** Sum of all item prices $\times$ quantities.
@@ -221,9 +221,9 @@ flowchart TD
   - **Grand Total:** `max(0, round(total + tax - discount, 2))`.
 
 #### 3. Checkout & Delivery Address
-* The shopper clicks **Proceed to Checkout** (`order/views.py:placeorder`).
+* The shopper clicks **Proceed to Checkout** (`cart/views.py:placeorder`).
 * If not logged in, they are redirected to login (`account/views.py:logins`). Upon login, the system automatically runs the cart migration so their items are preserved.
-* The customer enters their delivery info: recipient name, phone number, country, state, city, and street address (`OrderAddress`).
+* The customer enters their delivery info: country, state, city, and street address (`OrderAddress` with fields `country`, `state`, `city`, `address_line_1`). The recipient name and phone number are taken from the authenticated user's account.
 
 #### 4. Initiating Khalti Cashless Payment (`order/views.py:payment`)
 * The user clicks **Pay with Khalti**.
@@ -249,11 +249,11 @@ flowchart TD
 #### 6. Automated Invoice Email & Order Confirmation
 * **Email Dispatch:** Our server builds an HTML invoice using `render_to_string("order/order_complete.html", email_context)` and dispatches it via `EmailMultiAlternatives` to the customer's email.
 * The email contains the order tracking number, purchased items, price breakdown, 13% VAT, discount, and delivery address.
-* The customer is redirected to the confirmation view (`order/views.py:order`), displaying a printable invoice receipt.
+* The customer is redirected to their order history (`dashbord/views.py:order`), where they can view all past orders grouped by status.
 
 #### 7. Admin Processing, Delivery & Logout
 * **Store Management:** Store staff log into the **Django Jazzmin** admin panel (`/admin/`), view the paid order and shipping address, package the products, and update the status to `Delivered`.
-* **Order History:** The customer can view and track their past orders anytime in their dashboard (`dashbord/views.py:my_orders`).
+* **Order History:** The customer can view and track their past orders anytime in their dashboard (`dashbord/views.py:order`).
 * **Delivery & Session Exit:** The package is physically delivered to the customer's address. The customer can safely log out (`account/views.py:logouts`).
 
 ---
@@ -301,7 +301,7 @@ sequenceDiagram
     User->>App: 8. GET /order/verify/?pidx=...
     App->>Khalti: 9. POST /epayment/lookup/ with pidx & Authorization header
     Khalti-->>App: 10. Returns payload with status: "Completed" & verified amount
-    App->>DB: 11. Commits Order record, deducts Product stock, deletes CartItem
+    App->>DB: 11. Commits Order record, deducts Product stock, flags CartItem as ordered
     App-->>User: 12. Renders Order Completion invoice view & triggers SMTP email
 ```
 
@@ -313,7 +313,7 @@ sequenceDiagram
 2. **Steps 3–5 (API Initiation):** The backend issues an HTTPS request to Khalti's `/epayment/initiate/` using the private `KHALTI_SECRET_KEY`. Khalti returns a unique identifier (`pidx`) and an authorization URL.
 3. **Steps 6–7 (Payment Authorization):** The customer executes payment on Khalti's secure domain. Credentials are never exposed to NepCart servers.
 4. **Steps 8–10 (Out-of-Band Verification):** Upon client callback, the backend performs a direct server-to-server query against Khalti's `/epayment/lookup/` endpoint, validating that the transaction status is `"Completed"` and matches the expected amount.
-5. **Steps 11–12 (State Persistence & Fulfillment):** The backend marks the `Order` as paid, records the `pidx`, decrements stock from inventory, clears cart items, and dispatches an invoice via SMTP.
+5. **Steps 11–12 (State Persistence & Fulfillment):** The backend creates the `Order` record with `status='Paid'`, decrements stock from inventory, flags each `CartItem` as `is_ordered=True` (linking it to the new order), and dispatches an invoice via SMTP.
 
 #### How to Explain This in a Presentation
 > *"Our Khalti payment works in three simple steps:*  
@@ -332,8 +332,8 @@ sequenceDiagram
 * **What It Is:** An authentication module where `phone_number` serves as the primary unique credential instead of a standard `username`.
 * **Why We Need It:** Aligns with standard mobile-centric authentication patterns in Nepal, reducing registration friction and simplifying order delivery tracking.
 * **How It Works Step-by-Step:**
-  1. Extends `AbstractUser` inside [`account/models.py`](file:///c:/Users/Nirajan/Documents/antigravity/hopeful-hawking/account/models.py).
-  2. Sets `USERNAME_FIELD = 'phone_number'` and adds a unique `CharField` constraint.
+  1. Extends `AbstractUser` inside [`account/models.py`](file:///c:/Users/Nirajan/Documents/antigravity/hopeful-hawking/account/models.py), adding `phone_number` and `is_verified` fields.
+  2. During registration (`account/views.py:signup`), the phone number is programmatically copied into Django's built-in `username` field, so authentication uses `authenticate(username=phone_number, password=password)`. The view manually checks for duplicate phone numbers before creating the account.
   3. Uses Django’s password hashing mechanism (**PBKDF2 with SHA-256**, 600,000 iterations, unique salt per record) via `set_password()`.
   4. Generates email verification tokens using HMAC-SHA256 (`default_token_generator`), activating accounts via `is_verified = True` upon confirmation.
 
@@ -347,7 +347,7 @@ sequenceDiagram
 * **What It Is:** A normalized product management schema supporting multiple attributes (sizes, colors) under parent catalog items.
 * **Why We Need It:** Avoids redundant product records for different sizes or colors, preserving clean category listings while maintaining precise inventory tracking.
 * **How It Works Step-by-Step:**
-  1. `Product` defines core properties: title, slug, price, main image, total stock, and availability boolean.
+  1. `Product` defines core properties: `product_name`, `slug`, `price` (with `initial_price` for original/discount tracking), `image`, `stock`, `is_available`, `is_popular`, `is_featured`, and `catogery` (foreign key to category).
   2. `Variation` maintains foreign key references to `Product`, specifying `variation_category` (`'size'`, `'color'`) and `variation_value`.
   3. Product detail views query variations grouped by category, rendering dynamic `<select>` options.
   4. Selected variation IDs are attached to `CartItem` instances upon addition to cart.
@@ -364,7 +364,7 @@ sequenceDiagram
 * **How It Works Step-by-Step:**
   1. **Anonymous Cart:** Assigns `CartItem` rows to `request.session.session_key` stored in the client's session cookie.
   2. **Global Cart Counter:** A Django context processor executes across all requests to supply active cart counts to the navigation bar.
-  3. **Cart Migration Algorithm:** During authentication in `logins()`, the view queries existing `CartItem` records matching the visitor's `session_key` and updates `cart_item.user = authenticated_user`, merging overlapping item quantities.
+  3. **Cart Migration:** During authentication in `logins()`, the view queries existing `CartItem` records matching the visitor's `session_key` and reassigns each one to the authenticated user (`x.user = user`). Note: it does not merge quantities with any existing user cart items — it simply transfers ownership.
 
 #### How to Explain This in a Presentation
 > *"The cart system supports both session-based guest carts and authenticated user carts. If a guest adds products and later logs in, our authentication view executes a migration routine that reassigns those session cart items to their user account, preventing cart loss."*
@@ -418,7 +418,7 @@ sequenceDiagram
 * **How It Works Step-by-Step:**
   1. Configured via `django-jazzmin` in `INSTALLED_APPS`, applying an AdminLTE 3 UI theme.
   2. Governed by Django's built-in Role-Based Access Control (RBAC), restricted to staff (`is_staff = True`) and superuser accounts.
-  3. Implements model admins with search fields, list filters, inline forms for variations/order products, and image thumbnail previews.
+  3. Implements model admins with search fields, list filters, and inline forms for variations and order products.
 
 #### How to Explain This in a Presentation
 > *"For backend administration, we implemented Django Jazzmin, which provides a responsive dashboard for inventory and order management. Access is controlled via Django's role-based permissions, allowing staff to manage categories, products, stock levels, and customer orders."*
@@ -509,7 +509,7 @@ Where:
 
 1. **Stack & Architecture:** Built with **Python 3.12** and **Django 4.2 LTS** implementing the **Model-View-Template (MVT)** pattern.
 2. **Recommendation Engine:** Employs **Item-to-Item Collaborative Filtering** using **Jaccard Similarity** ($|A \cap B| / |A \cup B|$) with automated category cold-start resilience.
-3. **Authentication:** Customized `AbstractUser` utilizing **Phone Number** as the unique identifier.
+3. **Authentication:** Customized `AbstractUser` with **Phone Number** used as the login credential (programmatically mapped to Django's `username` field).
 4. **Cart Persistence:** Implements **Session-to-User cart migration** to retain guest selections upon login.
 5. **Calculations:** Programmatically computes **subtotals**, **coupon discounts**, and statutory **13% VAT**, converted to Paisa.
 6. **Payment Integration:** Uses **Khalti ePayment API v2** with mandatory **server-to-server lookup verification**.
